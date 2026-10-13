@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FraudGuard // Терминал антифрод-мониторинга</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-shield" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>FraudGuard</h1>
+          <span class="brand-subtitle">Терминал офицера антифрода</span>
+        </div>
+      </div>
+
+      <div class="header-status-group">
+        <div class="sla-chip">
+          <span class="sla-label">SLA оценки:</span>
+          <span class="sla-value">&lt; 15 мс</span>
+        </div>
+        <div class="system-status">
+          <div class="pulse-indicator" aria-hidden="true"></div>
+          <span class="status-label">Мониторинг активен</span>
+          <span class="divider" aria-hidden="true">•</span>
+          <span id="current-clock" class="clock-display">00:00:00</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <section class="metrics-grid" aria-label="Сводные метрики мониторинга">
+        <div class="metric-card card-total">
+          <div class="metric-header">
+            <span class="metric-title">Всего операций</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value" id="metric-total">0</div>
+          <div class="metric-footer">Общий входящий поток транзакций</div>
+        </div>
+
+        <div class="metric-card card-approved">
+          <div class="metric-header">
+            <span class="metric-title">Одобрено</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value text-approved" id="metric-approved">0</div>
+          <div class="metric-footer">Легитимные операции без риска</div>
+        </div>
+
+        <div class="metric-card card-review">
+          <div class="metric-header">
+            <span class="metric-title">На проверке</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value text-review" id="metric-review">0</div>
+          <div class="metric-footer">Требуют ручного подтверждения</div>
+        </div>
+
+        <div class="metric-card card-rejected">
+          <div class="metric-header">
+            <span class="metric-title">Заблокировано</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value text-rejected" id="metric-rejected">0</div>
+          <div class="metric-footer">Критический риск мошенничества</div>
+        </div>
+
+        <div class="metric-card card-avg">
+          <div class="metric-header">
+            <span class="metric-title">Средний риск</span>
+            <div class="metric-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3v18h18"/>
+                <path d="m19 9-5 5-4-4-3 3"/>
+              </svg>
+            </div>
+          </div>
+          <div class="metric-value text-score" id="metric-avg-score">0.0</div>
+          <div class="metric-footer">Оценка скоринга от 0 до 100</div>
+        </div>
+      </section>
+
+      <section class="simulation-panel" aria-label="Панель оперативной симуляции">
+        <div class="section-title-wrap">
+          <div class="title-with-badge">
+            <h2 class="section-title">Оперативная симуляция сценариев</h2>
+            <span class="badge badge-subtle">Тестовый полигон</span>
+          </div>
+          <p class="section-desc">Генерация событий для проверки эвристик и правил детекции в режиме реального времени</p>
+        </div>
+
+        <div class="simulation-actions">
+          <button class="sim-btn sim-normal" id="btn-sim-normal" type="button">
+            <div class="sim-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="sim-btn-info">
+              <span class="sim-btn-title">Штатный перевод</span>
+              <span class="sim-btn-hint">4 500 ₽ • Москва • Доверенное устройство</span>
+            </div>
+          </button>
+
+          <button class="sim-btn sim-velocity" id="btn-sim-velocity" type="button">
+            <div class="sim-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </div>
+            <div class="sim-btn-info">
+              <span class="sim-btn-title">Серия операций (Velocity)</span>
+              <span class="sim-btn-hint">Серия из 4 быстрых списаний за 60 секунд</span>
+            </div>
+          </button>
+
+          <button class="sim-btn sim-amount" id="btn-sim-amount" type="button">
+            <div class="sim-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div class="sim-btn-info">
+              <span class="sim-btn-title">Критическая сумма</span>
+              <span class="sim-btn-hint">750 000 ₽ • Превышение критического лимита</span>
+            </div>
+          </button>
+
+          <button class="sim-btn sim-geo" id="btn-sim-geo" type="button">
+            <div class="sim-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div class="sim-btn-info">
+              <span class="sim-btn-title">Гео-аномалия (Телепортация)</span>
+              <span class="sim-btn-hint">Москва → Владивосток за 5 секунд</span>
+            </div>
+          </button>
+        </div>
+
+        <div id="simulation-toast" class="toast-notice hidden" role="status"></div>
+      </section>
+
+      <section class="transactions-section" aria-label="Журнал аудита транзакций">
+        <div class="transactions-header">
+          <div class="header-left">
+            <h2 class="section-title">Журнал аудита транзакций</h2>
+            <div class="status-filters" id="status-filters" role="tablist">
+              <button class="filter-btn active" data-status="ALL" type="button" role="tab" aria-selected="true">Все</button>
+              <button class="filter-btn" data-status="APPROVED" type="button" role="tab" aria-selected="false">Одобрено</button>
+              <button class="filter-btn" data-status="MANUAL_REVIEW" type="button" role="tab" aria-selected="false">На проверке</button>
+              <button class="filter-btn" data-status="REJECTED" type="button" role="tab" aria-selected="false">Заблокировано</button>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" class="search-icon" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="tx-search-input" class="search-input" placeholder="Поиск по счёту, городу или ID..." aria-label="Поиск по журналу">
+            </div>
+
+            <button class="action-btn" id="btn-export-csv" type="button" title="Экспорт текущего журнала в CSV файл">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span>Экспорт CSV</span>
+            </button>
+
+            <button class="action-btn" id="btn-refresh" type="button" title="Обновить журнал транзакций">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" class="refresh-icon" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span>Обновить</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th scope="col">ID транзакции</th>
+                <th scope="col">Время</th>
+                <th scope="col">Отправитель → Получатель</th>
+                <th scope="col">Сумма</th>
+                <th scope="col">Локация / IP</th>
+                <th scope="col">Риск-скор</th>
+                <th scope="col">Статус</th>
+                <th scope="col">Действия</th>
+              </tr>
+            </thead>
+            <tbody id="tx-tbody">
+              <tr class="empty-row">
+                <td colspan="8">
+                  <div class="empty-state">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                      <rect x="2" y="5" width="20" height="14" rx="2"/>
+                      <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                    <p>Транзакции пока отсутствуют</p>
+                    <span>Запустите симуляцию сценария кнопками выше</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-tx-title">
+    <div class="modal-card" id="detail-modal">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 id="modal-tx-title">Карточка проверки транзакции</h3>
+          <span class="mono-id" id="modal-tx-id">--</span>
+        </div>
+        <button class="modal-close-btn" id="modal-close" type="button" aria-label="Закрыть">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Сумма операции</span>
+            <span class="summary-value highlight-amount" id="modal-amount">--</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Текущий вердикт</span>
+            <span id="modal-status-badge">--</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Риск-скор</span>
+            <div class="risk-score-display">
+              <span class="score-number" id="modal-risk-score">--</span>
+              <span class="score-level-badge" id="modal-risk-level">--</span>
+            </div>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Время операции</span>
+            <span class="summary-value mono-val" id="modal-timestamp">--</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Счёт списания</span>
+            <span class="summary-value mono-val" id="modal-account">--</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Получатель</span>
+            <span class="summary-value mono-val" id="modal-recipient">--</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">IP-адрес</span>
+            <span class="summary-value mono-val" id="modal-ip">--</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">ID устройства</span>
+            <span class="summary-value mono-val" id="modal-device">--</span>
+          </div>
+          <div class="summary-item summary-item-full">
+            <span class="summary-label">Геолокация</span>
+            <span class="summary-value" id="modal-geo">--</span>
+          </div>
+        </div>
+
+        <div class="violations-section">
+          <h4 class="subhead">Сработавшие правила детекции</h4>
+          <div class="violations-list" id="modal-violations-list"></div>
+        </div>
+
+        <div class="review-action-section" id="modal-review-section">
+          <h4 class="subhead">Решение офицера безопасности</h4>
+          <div id="modal-review-controls" class="review-controls">
+            <label for="review-note-input" class="review-label">Обоснование вердикта:</label>
+            <textarea id="review-note-input" class="review-textarea" rows="2" placeholder="Укажите обоснование решения проверки..."></textarea>
+            <div class="review-buttons">
+              <button class="decision-btn approve-btn" id="btn-action-approve" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Одобрить транзакцию</span>
+              </button>
+              <button class="decision-btn reject-btn" id="btn-action-reject" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                <span>Отклонить транзакцию</span>
+              </button>
+            </div>
+          </div>
+          <div id="modal-review-resolved" class="review-resolved-box hidden">
+            <div class="resolved-header">
+              <span class="resolved-title">Решение зафиксировано</span>
+              <span class="resolved-date" id="modal-resolved-time"></span>
+            </div>
+            <p class="resolved-note" id="modal-resolved-note"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
